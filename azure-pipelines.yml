@@ -9,28 +9,32 @@ trigger:
       - main
   paths:
     exclude:
-      - azure-pipelines.yml
+      - azure-pipelines.
+      
+pool:
+  vmImage: ubuntu-latest
 
-stages:
-  - stage: Build
-    displayName: Build the project
-    jobs:
-    - job: Build
-      displayName: Build job
-      pool:
-        vmImage: ubuntu-latest
-      steps:
-        - task: NodeTool@0
-          inputs:
-            versionSource: 'spec'
-            versionSpec: '18.x'
-          displayName: 'Install Node.js'
-        
-        - script: |
-            npm install -g aws-cdk
-        
-        - script: |
-            npm install --legacy-peer-deps
-        
-        - script: |
-            cdk deploy
+steps:
+  - task: NodeTool@0
+    inputs:
+      versionSource: 'spec'
+      versionSpec: '18.x'
+    displayName: 'Install Node.js'
+  
+  - script: |
+      npm install -g aws-cdk
+    displayName: 'Install AWS-CDK'
+  
+  - script: |
+      npm install --legacy-peer-deps
+    displayName: 'Install dependencies'
+
+  - task: AWSShellScript@1
+    inputs:
+      awsCredentials: 'aws'
+      regionName: '$(REGION)'
+      scriptType: 'inline'
+      inlineScript: 'cdk deploy'
+      disableAutoCwd: true
+      workingDirectory: '$(System.DefaultWorkingDirectory)'
+    displayName: 'cdk deploy'
