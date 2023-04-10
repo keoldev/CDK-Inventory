@@ -30,7 +30,7 @@ stages:
             npm install -g aws-cdk
         
         - script: |
-            npm install
+            npm install --legacy-peer-deps
         
         - script: |
             cdk deploy
