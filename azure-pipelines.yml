@@ -34,7 +34,7 @@ steps:
       awsCredentials: 'aws'
       regionName: '$(REGION)'
       scriptType: 'inline'
-      inlineScript: 'cdk deploy'
+      inlineScript: 'cdk deploy --require-approval never'
       disableAutoCwd: true
       workingDirectory: '$(System.DefaultWorkingDirectory)'
     displayName: 'cdk deploy'
