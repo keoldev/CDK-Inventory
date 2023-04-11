@@ -390,10 +390,142 @@ Resources:
       aws:cdk:path: CdkStack/Custom::S3AutoDeleteObjectsCustomResourceProvider/Handler
       aws:asset:path: asset.350185a1069fa20a23a583e20c77f6844218bd73097902362dc94f1a108f5d89
       aws:asset:property: Code
+  LambdaDynamoDBinventorylambdacdkServiceRole9816146A:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource:
+                  Fn::Join:
+                    - ""
+                    - - "arn:"
+                      - Ref: AWS::Partition
+                      - ":logs:"
+                      - Ref: AWS::Region
+                      - ":"
+                      - Ref: AWS::AccountId
+                      - :log-group:/aws/lambda/*
+            Version: "2012-10-17"
+          PolicyName: LambdaFunctionServiceRolePolicy
+    Metadata:
+      aws:cdk:path: CdkStack/Lambda-DynamoDB/inventory-lambda-cdkServiceRole/Resource
+  LambdaDynamoDBinventorylambdacdkServiceRoleDefaultPolicy74FC384D:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - s3:DeleteObject
+              - s3:GetObject
+              - s3:PutObject
+            Effect: Allow
+            Resource:
+              Fn::GetAtt:
+                - imagecloudfrontS3Bucket5F431E11
+                - Arn
+          - Action:
+              - xray:PutTelemetryRecords
+              - xray:PutTraceSegments
+            Effect: Allow
+            Resource: "*"
+          - Action:
+              - dynamodb:BatchGetItem
+              - dynamodb:BatchWriteItem
+              - dynamodb:ConditionCheckItem
+              - dynamodb:DeleteItem
+              - dynamodb:DescribeTable
+              - dynamodb:GetItem
+              - dynamodb:GetRecords
+              - dynamodb:GetShardIterator
+              - dynamodb:PutItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:UpdateItem
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - LambdaDynamoDBDynamoTable1F288269
+                  - Arn
+              - Ref: AWS::NoValue
+        Version: "2012-10-17"
+      PolicyName: LambdaDynamoDBinventorylambdacdkServiceRoleDefaultPolicy74FC384D
+      Roles:
+        - Ref: LambdaDynamoDBinventorylambdacdkServiceRole9816146A
+    Metadata:
+      aws:cdk:path: CdkStack/Lambda-DynamoDB/inventory-lambda-cdkServiceRole/DefaultPolicy/Resource
+      cfn_nag:
+        rules_to_suppress:
+          - id: W12
+            reason: Lambda needs the following minimum required permissions to send trace data to X-Ray and access ENIs in a VPC.
+  LambdaDynamoDBinventorylambdacdk17374F7A:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        ZipFile: 'def handler(): print("Hello World")'
+      Role:
+        Fn::GetAtt:
+          - LambdaDynamoDBinventorylambdacdkServiceRole9816146A
+          - Arn
+      Environment:
+        Variables:
+          BUCKET_NAME:
+            Ref: imagecloudfrontS3Bucket5F431E11
+          TABLE_NAME:
+            Ref: LambdaDynamoDBDynamoTable1F288269
+      FunctionName: inventory-lambda-cdk
+      Handler: lambda_function.handler
+      Runtime: python3.9
+      TracingConfig:
+        Mode: Active
+    DependsOn:
+      - LambdaDynamoDBinventorylambdacdkServiceRoleDefaultPolicy74FC384D
+      - LambdaDynamoDBinventorylambdacdkServiceRole9816146A
+    Metadata:
+      aws:cdk:path: CdkStack/Lambda-DynamoDB/inventory-lambda-cdk/Resource
+      cfn_nag:
+        rules_to_suppress:
+          - id: W58
+            reason: Lambda functions has the required permission to write CloudWatch Logs. It uses custom policy instead of arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole with tighter permissions.
+          - id: W89
+            reason: This is not a rule for the general case, just for specific use cases/industries
+          - id: W92
+            reason: Impossible for us to define the correct concurrency for clients
+  LambdaDynamoDBDynamoTable1F288269:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      KeySchema:
+        - AttributeName: product_id
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: product_id
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      TableName: db-inventory-cdk
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: CdkStack/Lambda-DynamoDB/DynamoTable/Resource
   CDKMetadata:
     Type: AWS::CDK::Metadata
     Properties:
-      Analytics: v2:deflate64:H4sIAAAAAAAA/3VQTU/DMAz9LdzTjFExwY1RhLTTpo072pxs8trFUuwMoaj/HTdFFA5c4o/4Pfu9O5sXj/b2Zv/BFbi26vBg80720BptvWeubX5O0HoxzTF8Z2PYUIfwObXHujfQUXLHSEFsfkGWiIckSMGsI54wLAE888r5ICgF3gyA1wHw38Rvmr43TWKhy9YzpQh+GJjyP1+bSFd0PpolsxeVpeynspKCw8Jm6oXKfxr0M3Vlgzqhj8QEwrNizI+iSv2Yzn2jXd2bQM7bM8+u8wc7v1eyMyNWMen1F2+3Y/wCe46lo2gBAAA=
+      Analytics: v2:deflate64:H4sIAAAAAAAA/4WQTWsCMRCGf0vv2VhdKu2tuiIUCpXVe8kmUUZ3M5BJLBL2vzeb1NUeSi+Zr7zz8cx4mL/wxwfxRYVUp6KFhoetE/LEYuozUMnD0suTdqzamx8vmw22IC+3dI57Jlv0am/ROB5WQM5C4x2gYR8WDmAWUmqiN6WNA5fk1SBYD4K/fty36RmIjocaWz2Ukr2tcl2iFV2jBA9rb2QaHmtXv2fqYkSHKp66E03uk5y+Z5Unh12tCb2VecLo/yptLJ5BacsWRNpFZHHzA7sXVmgU5IHlPDJ+HSATtumMiDs+znrpaJLoj9iKCP3GZIfbkpXlv/p8cTGe9p7iHa5SYrXsmUGl+ZEm5+kznz7FhkcCKKyPmDvN62y/ARhjzNMRAgAA
     Metadata:
       aws:cdk:path: CdkStack/CDKMetadata/Default
     Condition: CDKMetadataAvailable
