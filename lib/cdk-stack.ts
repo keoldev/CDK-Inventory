@@ -71,13 +71,15 @@ export class CdkStack extends Stack {
           flows: {
             implicitCodeGrant: true,
           }
-        }
+        },
+        userPoolClientName: 'inventory-client'  
       },
       apiGatewayProps: {
+        restApiName: 'inventory-API-CDK',
         defaultCorsPreflightOptions: {
           allowOrigins: ['*'],
           allowHeaders: ['Content-Type','X-Amz-Date','Authorization','X-Api-Key','X-Amz-Security-Token'],
-          allowMethods: ['POST','OPTIONS','GET','PUT','DELETE'],
+          allowMethods: ['POST','OPTIONS','GET','PUT','DELETE']
         }
       },
       existingLambdaObj: lambdaDynamoDB.lambdaFunction
