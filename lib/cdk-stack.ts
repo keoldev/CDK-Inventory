@@ -14,6 +14,24 @@ export class CdkStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
+    const frontCloudfront = new CloudFrontToS3(this, 'front-cloudfront', {
+      insertHttpSecurityHeaders: false,
+      bucketProps: {
+        bucketName: 'frontend-inventory-bucket',
+        blockPublicAccess: BlockPublicAccess.BLOCK_ALL,
+        removalPolicy: RemovalPolicy.DESTROY,
+        autoDeleteObjects: true
+      },
+      cloudFrontLoggingBucketProps: {
+        removalPolicy: RemovalPolicy.DESTROY,
+        autoDeleteObjects: true,
+      },
+      loggingBucketProps: {
+        removalPolicy: RemovalPolicy.DESTROY,
+        autoDeleteObjects: true,
+      }
+    })
+
     const imageCloudfront = new CloudFrontToS3(this, 'image-cloudfront', {
       insertHttpSecurityHeaders: false,
       bucketProps: {
@@ -70,7 +88,10 @@ export class CdkStack extends Stack {
         oAuth: {
           flows: {
             implicitCodeGrant: true,
-          }
+          },
+          callbackUrls: [
+            `https://${frontCloudfront.cloudFrontWebDistribution.distributionDomainName}`,
+          ],
         },
         userPoolClientName: 'inventory-client'  
       },
