@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@aws-solutions-constructs/aws-cloudfront-s3": "^2.36.0",
+    "@aws-solutions-constructs/aws-cognito-apigateway-lambda": "^2.37.0",
     "@aws-solutions-constructs/aws-lambda-dynamodb": "^2.33.0",
     "aws-cdk-lib": "2.69.0",
     "constructs": "^10.0.0",

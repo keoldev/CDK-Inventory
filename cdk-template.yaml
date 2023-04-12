@@ -433,9 +433,12 @@ Resources:
               - s3:PutObject
             Effect: Allow
             Resource:
-              Fn::GetAtt:
-                - imagecloudfrontS3Bucket5F431E11
-                - Arn
+              Fn::Join:
+                - ""
+                - - Fn::GetAtt:
+                      - imagecloudfrontS3Bucket5F431E11
+                      - Arn
+                  - /*
           - Action:
               - xray:PutTelemetryRecords
               - xray:PutTraceSegments
@@ -522,13 +525,438 @@ Resources:
     DeletionPolicy: Delete
     Metadata:
       aws:cdk:path: CdkStack/Lambda-DynamoDB/DynamoTable/Resource
+  CognitoApigatewayLambdaApiAccessLogGroup3BFD6506:
+    Type: AWS::Logs::LogGroup
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Metadata:
+      aws:cdk:path: CdkStack/Cognito-Apigateway-Lambda/ApiAccessLogGroup/Resource
+      cfn_nag:
+        rules_to_suppress:
+          - id: W86
+            reason: Retention period for CloudWatchLogs LogGroups are set to 'Never Expire' to preserve customer data indefinitely
+          - id: W84
+            reason: By default CloudWatchLogs LogGroups data is encrypted using the CloudWatch server-side encryption keys (AWS Managed Keys)
+  CognitoApigatewayLambdaLambdaRestApi2B663102:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      EndpointConfiguration:
+        Types:
+          - EDGE
+      Name: LambdaRestApi
+    Metadata:
+      aws:cdk:path: CdkStack/Cognito-Apigateway-Lambda/LambdaRestApi/Resource
+  CognitoApigatewayLambdaLambdaRestApiDeployment6A893E85e533646eea485f40ceafa3966161be6e:
+    Type: AWS::ApiGateway::Deployment
+    Properties:
+      RestApiId:
+        Ref: CognitoApigatewayLambdaLambdaRestApi2B663102
+      Description: Automatically created by the RestApi construct
+    DependsOn:
+      - CognitoApigatewayLambdaLambdaRestApiproxyANYD6DF8677
+      - CognitoApigatewayLambdaLambdaRestApiproxyOPTIONS180D7529
+      - CognitoApigatewayLambdaLambdaRestApiproxyE6184794
+      - CognitoApigatewayLambdaLambdaRestApiANY203962A1
+      - CognitoApigatewayLambdaLambdaRestApiOPTIONS19C9D2EB
+    Metadata:
+      aws:cdk:path: CdkStack/Cognito-Apigateway-Lambda/LambdaRestApi/Deployment/Resource
+      cfn_nag:
+        rules_to_suppress:
+          - id: W45
+            reason: ApiGateway has AccessLogging enabled in AWS::ApiGateway::Stage resource, but cfn_nag checkes for it in AWS::ApiGateway::Deployment resource
+  CognitoApigatewayLambdaLambdaRestApiDeploymentStageprod7F882E8D:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      RestApiId:
+        Ref: CognitoApigatewayLambdaLambdaRestApi2B663102
+      AccessLogSetting:
+        DestinationArn:
+          Fn::GetAtt:
+            - CognitoApigatewayLambdaApiAccessLogGroup3BFD6506
+            - Arn
+        Format: '{"requestId":"$context.requestId","ip":"$context.identity.sourceIp","user":"$context.identity.user","caller":"$context.identity.caller","requestTime":"$context.requestTime","httpMethod":"$context.httpMethod","resourcePath":"$context.resourcePath","status":"$context.status","protocol":"$context.protocol","responseLength":"$context.responseLength"}'
+      DeploymentId:
+        Ref: CognitoApigatewayLambdaLambdaRestApiDeployment6A893E85e533646eea485f40ceafa3966161be6e
+      MethodSettings:
+        - DataTraceEnabled: false
+          HttpMethod: "*"
+          LoggingLevel: INFO
+          ResourcePath: /*
+      StageName: prod
+      TracingEnabled: true
+    Metadata:
+      aws:cdk:path: CdkStack/Cognito-Apigateway-Lambda/LambdaRestApi/DeploymentStage.prod/Resource
+  CognitoApigatewayLambdaLambdaRestApiOPTIONS19C9D2EB:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: OPTIONS
+      ResourceId:
+        Fn::GetAtt:
+          - CognitoApigatewayLambdaLambdaRestApi2B663102
+          - RootResourceId
+      RestApiId:
+        Ref: CognitoApigatewayLambdaLambdaRestApi2B663102
+      AuthorizationType: NONE
+      Integration:
+        IntegrationResponses:
+          - ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS,GET,PUT,DELETE'"
+            StatusCode: "204"
+        RequestTemplates:
+          application/json: "{ statusCode: 200 }"
+        Type: MOCK
+      MethodResponses:
+        - ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Origin: true
+            method.response.header.Access-Control-Allow-Methods: true
+          StatusCode: "204"
+    Metadata:
+      aws:cdk:path: CdkStack/Cognito-Apigateway-Lambda/LambdaRestApi/Default/OPTIONS/Resource
+  CognitoApigatewayLambdaLambdaRestApiproxyE6184794:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId:
+        Fn::GetAtt:
+          - CognitoApigatewayLambdaLambdaRestApi2B663102
+          - RootResourceId
+      PathPart: "{proxy+}"
+      RestApiId:
+        Ref: CognitoApigatewayLambdaLambdaRestApi2B663102
+    Metadata:
+      aws:cdk:path: CdkStack/Cognito-Apigateway-Lambda/LambdaRestApi/Default/{proxy+}/Resource
+  CognitoApigatewayLambdaLambdaRestApiproxyOPTIONS180D7529:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: OPTIONS
+      ResourceId:
+        Ref: CognitoApigatewayLambdaLambdaRestApiproxyE6184794
+      RestApiId:
+        Ref: CognitoApigatewayLambdaLambdaRestApi2B663102
+      AuthorizationType: NONE
+      Integration:
+        IntegrationResponses:
+          - ResponseParameters:
+              method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+              method.response.header.Access-Control-Allow-Origin: "'*'"
+              method.response.header.Access-Control-Allow-Methods: "'POST,OPTIONS,GET,PUT,DELETE'"
+            StatusCode: "204"
+        RequestTemplates:
+          application/json: "{ statusCode: 200 }"
+        Type: MOCK
+      MethodResponses:
+        - ResponseParameters:
+            method.response.header.Access-Control-Allow-Headers: true
+            method.response.header.Access-Control-Allow-Origin: true
+            method.response.header.Access-Control-Allow-Methods: true
+          StatusCode: "204"
+    Metadata:
+      aws:cdk:path: CdkStack/Cognito-Apigateway-Lambda/LambdaRestApi/Default/{proxy+}/OPTIONS/Resource
+  CognitoApigatewayLambdaLambdaRestApiproxyANYApiPermissionCdkStackCognitoApigatewayLambdaLambdaRestApiBEB05525ANYproxy98F1CC2B:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - LambdaDynamoDBinventorylambdacdk17374F7A
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: CognitoApigatewayLambdaLambdaRestApi2B663102
+            - /
+            - Ref: CognitoApigatewayLambdaLambdaRestApiDeploymentStageprod7F882E8D
+            - /*/*
+    Metadata:
+      aws:cdk:path: CdkStack/Cognito-Apigateway-Lambda/LambdaRestApi/Default/{proxy+}/ANY/ApiPermission.CdkStackCognitoApigatewayLambdaLambdaRestApiBEB05525.ANY..{proxy+}
+  CognitoApigatewayLambdaLambdaRestApiproxyANYApiPermissionTestCdkStackCognitoApigatewayLambdaLambdaRestApiBEB05525ANYproxyB3508B9D:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - LambdaDynamoDBinventorylambdacdk17374F7A
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: CognitoApigatewayLambdaLambdaRestApi2B663102
+            - /test-invoke-stage/*/*
+    Metadata:
+      aws:cdk:path: CdkStack/Cognito-Apigateway-Lambda/LambdaRestApi/Default/{proxy+}/ANY/ApiPermission.Test.CdkStackCognitoApigatewayLambdaLambdaRestApiBEB05525.ANY..{proxy+}
+  CognitoApigatewayLambdaLambdaRestApiproxyANYD6DF8677:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: ANY
+      ResourceId:
+        Ref: CognitoApigatewayLambdaLambdaRestApiproxyE6184794
+      RestApiId:
+        Ref: CognitoApigatewayLambdaLambdaRestApi2B663102
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId:
+        Ref: CognitoApigatewayLambdaCognitoAuthorizer541AC4F3
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - ":apigateway:"
+              - Ref: AWS::Region
+              - :lambda:path/2015-03-31/functions/
+              - Fn::GetAtt:
+                  - LambdaDynamoDBinventorylambdacdk17374F7A
+                  - Arn
+              - /invocations
+    Metadata:
+      aws:cdk:path: CdkStack/Cognito-Apigateway-Lambda/LambdaRestApi/Default/{proxy+}/ANY/Resource
+  CognitoApigatewayLambdaLambdaRestApiANYApiPermissionCdkStackCognitoApigatewayLambdaLambdaRestApiBEB05525ANYEED45C69:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - LambdaDynamoDBinventorylambdacdk17374F7A
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: CognitoApigatewayLambdaLambdaRestApi2B663102
+            - /
+            - Ref: CognitoApigatewayLambdaLambdaRestApiDeploymentStageprod7F882E8D
+            - /*/
+    Metadata:
+      aws:cdk:path: CdkStack/Cognito-Apigateway-Lambda/LambdaRestApi/Default/ANY/ApiPermission.CdkStackCognitoApigatewayLambdaLambdaRestApiBEB05525.ANY..
+  CognitoApigatewayLambdaLambdaRestApiANYApiPermissionTestCdkStackCognitoApigatewayLambdaLambdaRestApiBEB05525ANY56DE0E3A:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - LambdaDynamoDBinventorylambdacdk17374F7A
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:"
+            - Ref: AWS::Region
+            - ":"
+            - Ref: AWS::AccountId
+            - ":"
+            - Ref: CognitoApigatewayLambdaLambdaRestApi2B663102
+            - /test-invoke-stage/*/
+    Metadata:
+      aws:cdk:path: CdkStack/Cognito-Apigateway-Lambda/LambdaRestApi/Default/ANY/ApiPermission.Test.CdkStackCognitoApigatewayLambdaLambdaRestApiBEB05525.ANY..
+  CognitoApigatewayLambdaLambdaRestApiANY203962A1:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      HttpMethod: ANY
+      ResourceId:
+        Fn::GetAtt:
+          - CognitoApigatewayLambdaLambdaRestApi2B663102
+          - RootResourceId
+      RestApiId:
+        Ref: CognitoApigatewayLambdaLambdaRestApi2B663102
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId:
+        Ref: CognitoApigatewayLambdaCognitoAuthorizer541AC4F3
+      Integration:
+        IntegrationHttpMethod: POST
+        Type: AWS_PROXY
+        Uri:
+          Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - ":apigateway:"
+              - Ref: AWS::Region
+              - :lambda:path/2015-03-31/functions/
+              - Fn::GetAtt:
+                  - LambdaDynamoDBinventorylambdacdk17374F7A
+                  - Arn
+              - /invocations
+    Metadata:
+      aws:cdk:path: CdkStack/Cognito-Apigateway-Lambda/LambdaRestApi/Default/ANY/Resource
+  CognitoApigatewayLambdaLambdaRestApiUsagePlanEAD2351C:
+    Type: AWS::ApiGateway::UsagePlan
+    Properties:
+      ApiStages:
+        - ApiId:
+            Ref: CognitoApigatewayLambdaLambdaRestApi2B663102
+          Stage:
+            Ref: CognitoApigatewayLambdaLambdaRestApiDeploymentStageprod7F882E8D
+          Throttle: {}
+    Metadata:
+      aws:cdk:path: CdkStack/Cognito-Apigateway-Lambda/LambdaRestApi/UsagePlan/Resource
+  CognitoApigatewayLambdaLambdaRestApiCloudWatchRole09DF6DC8:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+        Version: "2012-10-17"
+      Policies:
+        - PolicyDocument:
+            Statement:
+              - Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:DescribeLogGroups
+                  - logs:DescribeLogStreams
+                  - logs:FilterLogEvents
+                  - logs:GetLogEvents
+                  - logs:PutLogEvents
+                Effect: Allow
+                Resource:
+                  Fn::Join:
+                    - ""
+                    - - "arn:"
+                      - Ref: AWS::Partition
+                      - ":logs:"
+                      - Ref: AWS::Region
+                      - ":"
+                      - Ref: AWS::AccountId
+                      - :*
+            Version: "2012-10-17"
+          PolicyName: LambdaRestApiCloudWatchRolePolicy
+    Metadata:
+      aws:cdk:path: CdkStack/Cognito-Apigateway-Lambda/LambdaRestApiCloudWatchRole/Resource
+  CognitoApigatewayLambdaLambdaRestApiAccountA2579097:
+    Type: AWS::ApiGateway::Account
+    Properties:
+      CloudWatchRoleArn:
+        Fn::GetAtt:
+          - CognitoApigatewayLambdaLambdaRestApiCloudWatchRole09DF6DC8
+          - Arn
+    DependsOn:
+      - CognitoApigatewayLambdaLambdaRestApi2B663102
+    Metadata:
+      aws:cdk:path: CdkStack/Cognito-Apigateway-Lambda/LambdaRestApiAccount
+  CognitoApigatewayLambdaCognitoUserPool521A3E2D:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: admin_only
+            Priority: 1
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
+      AutoVerifiedAttributes:
+        - email
+      EmailVerificationMessage: The verification code to your new account is {####}
+      EmailVerificationSubject: Verify your new account
+      SmsVerificationMessage: The verification code to your new account is {####}
+      UsernameAttributes:
+        - email
+      UserPoolAddOns:
+        AdvancedSecurityMode: ENFORCED
+      UserPoolName: Inventory-Users
+      VerificationMessageTemplate:
+        DefaultEmailOption: CONFIRM_WITH_CODE
+        EmailMessage: The verification code to your new account is {####}
+        EmailSubject: Verify your new account
+        SmsMessage: The verification code to your new account is {####}
+    UpdateReplacePolicy: Delete
+    DeletionPolicy: Delete
+    Metadata:
+      aws:cdk:path: CdkStack/Cognito-Apigateway-Lambda/CognitoUserPool/Resource
+  CognitoApigatewayLambdaCognitoUserPoolinvntoryvk0188F594:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: inventoryvk
+      UserPoolId:
+        Ref: CognitoApigatewayLambdaCognitoUserPool521A3E2D
+    Metadata:
+      aws:cdk:path: CdkStack/Cognito-Apigateway-Lambda/CognitoUserPool/invntoryvk/Resource
+  CognitoApigatewayLambdaCognitoUserPoolClient56594A7D:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId:
+        Ref: CognitoApigatewayLambdaCognitoUserPool521A3E2D
+      AllowedOAuthFlows:
+        - implicit
+      AllowedOAuthFlowsUserPoolClient: true
+      AllowedOAuthScopes:
+        - profile
+        - phone
+        - email
+        - openid
+        - aws.cognito.signin.user.admin
+      CallbackURLs:
+        - https://example.com
+      SupportedIdentityProviders:
+        - COGNITO
+    Metadata:
+      aws:cdk:path: CdkStack/Cognito-Apigateway-Lambda/CognitoUserPoolClient/Resource
+  CognitoApigatewayLambdaCognitoAuthorizer541AC4F3:
+    Type: AWS::ApiGateway::Authorizer
+    Properties:
+      Name: authorizer
+      RestApiId:
+        Ref: CognitoApigatewayLambdaLambdaRestApi2B663102
+      Type: COGNITO_USER_POOLS
+      IdentitySource: method.request.header.Authorization
+      ProviderARNs:
+        - Fn::GetAtt:
+            - CognitoApigatewayLambdaCognitoUserPool521A3E2D
+            - Arn
+    Metadata:
+      aws:cdk:path: CdkStack/Cognito-Apigateway-Lambda/CognitoAuthorizer
   CDKMetadata:
     Type: AWS::CDK::Metadata
     Properties:
-      Analytics: v2:deflate64:H4sIAAAAAAAA/4WQTWsCMRCGf0vv2VhdKu2tuiIUCpXVe8kmUUZ3M5BJLBL2vzeb1NUeSi+Zr7zz8cx4mL/wxwfxRYVUp6KFhoetE/LEYuozUMnD0suTdqzamx8vmw22IC+3dI57Jlv0am/ROB5WQM5C4x2gYR8WDmAWUmqiN6WNA5fk1SBYD4K/fty36RmIjocaWz2Ukr2tcl2iFV2jBA9rb2QaHmtXv2fqYkSHKp66E03uk5y+Z5Unh12tCb2VecLo/yptLJ5BacsWRNpFZHHzA7sXVmgU5IHlPDJ+HSATtumMiDs+znrpaJLoj9iKCP3GZIfbkpXlv/p8cTGe9p7iHa5SYrXsmUGl+ZEm5+kznz7FhkcCKKyPmDvN62y/ARhjzNMRAgAA
+      Analytics: v2:deflate64:H4sIAAAAAAAA/4VSy07cMBT9lu4dUxpB211nEoGQWhENw7ryOCa9jOMb+QFNo/x7b+yEzEit2Njnvl/nEx+uv/KPH8Sry2R9zDQc+PDghTwyUv0cXM6HbZBH5VnxZGaUvgo1yH5VJ3lkUmOonywaz4cSnLdwCB7QsHsLDZiNlMq5u1oZDz6GF1PAzRTwP4/TNCMD0fJhh1pNpvivrSxNaNEeasGHm2BkLE62U1wp24JzMV/dG9FiTYPvxSFljYCyYOP48B2bW4uhmwwLHpnooBFevYqePGK1nXJ+00Hsaoal6jT2LU0Sx1glWnETKyVA/hisVFvhFPuh/C+sJ+OMKou/+8VlTp/wo6PoSos405lAS8SQym4CZbHwR1k6DjYGPPLh0SlbIeoUOOMFlNgKMKemWbOIhYZ5pnPNOLIiOI/tP7s9N9FUL1AryzbOKT/tAUzDTgPvg+9CrFKgqSFdP78mun6b+OpQR0YQc+nxNkjvLiKR3xiYEX9Xeu3xIWd5/m58Ik/2xot03j2WUVFuWf75/R7SorOVJnNaXiTLHokgt8m0x1RiZAZrxZ/dxcvlF355RVWeHUBm6ZLQKr5L/1+PDucKtQMAAA==
     Metadata:
       aws:cdk:path: CdkStack/CDKMetadata/Default
     Condition: CDKMetadataAvailable
+Outputs:
+  CognitoApigatewayLambdaLambdaRestApiEndpoint21B81EA5:
+    Value:
+      Fn::Join:
+        - ""
+        - - https://
+          - Ref: CognitoApigatewayLambdaLambdaRestApi2B663102
+          - .execute-api.
+          - Ref: AWS::Region
+          - "."
+          - Ref: AWS::URLSuffix
+          - /
+          - Ref: CognitoApigatewayLambdaLambdaRestApiDeploymentStageprod7F882E8D
+          - /
 Conditions:
   CDKMetadataAvailable:
     Fn::Or:

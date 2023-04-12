@@ -6,6 +6,8 @@ import { AttributeType } from 'aws-cdk-lib/aws-dynamodb';
 import { Code, Runtime } from 'aws-cdk-lib/aws-lambda';
 import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { BlockPublicAccess } from 'aws-cdk-lib/aws-s3';
+import { CognitoToApiGatewayToLambda } from '@aws-solutions-constructs/aws-cognito-apigateway-lambda';
+import { AccountRecovery } from 'aws-cdk-lib/aws-cognito';
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 
 export class CdkStack extends Stack {
@@ -49,13 +51,42 @@ export class CdkStack extends Stack {
             "s3:GetObject",
             "s3:DeleteObject"
           ],
-          resources: [`${imageCloudfront.s3Bucket?.bucketArn}`]
+          resources: [`${imageCloudfront.s3Bucket?.bucketArn}/*`]
         })]
       },
       tableEnvironmentVariableName: 'TABLE_NAME',
 
     })
 
+    const cognitoApigatewayLambda = new CognitoToApiGatewayToLambda(this, 'Cognito-Apigateway-Lambda', {
+      cognitoUserPoolProps: {
+        userPoolName: 'Inventory-Users',
+        accountRecovery: AccountRecovery.NONE,
+        signInAliases: {username: false, email: true},
+        autoVerify: {email: true, phone: false},
+        removalPolicy: RemovalPolicy.DESTROY
+      },
+      cognitoUserPoolClientProps: {
+        oAuth: {
+          flows: {
+            implicitCodeGrant: true,
+          }
+        }
+      },
+      apiGatewayProps: {
+        defaultCorsPreflightOptions: {
+          allowOrigins: ['*'],
+          allowHeaders: ['Content-Type','X-Amz-Date','Authorization','X-Api-Key','X-Amz-Security-Token'],
+          allowMethods: ['POST','OPTIONS','GET','PUT','DELETE'],
+        }
+      },
+      existingLambdaObj: lambdaDynamoDB.lambdaFunction
+    })
+    cognitoApigatewayLambda.userPool.addDomain('invntoryvk',{
+      cognitoDomain: {
+        domainPrefix: 'inventoryvk'
+      }
+    })
 
     // The code that defines your stack goes here
 
