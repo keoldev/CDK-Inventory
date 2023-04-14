@@ -23,11 +23,8 @@ steps:
   
   - script: |
       npm install -g aws-cdk
-    displayName: 'Install AWS-CDK'
-  
-  - script: |
       npm install --legacy-peer-deps
-    displayName: 'Install dependencies'
+    displayName: 'Install AWS-CDK and dependencies'
 
   - task: AWSShellScript@1
     inputs:
