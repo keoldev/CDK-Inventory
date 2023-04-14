@@ -343,6 +343,10 @@ Resources:
                   - ""
                   - - origin-access-identity/cloudfront/
                     - Ref: frontcloudfrontCloudFrontDistributionOrigin1S3OriginDC08B598
+        WebACLId:
+          Fn::GetAtt:
+            - wafwebaclfrontcloudfrontwafwebaclfrontcloudfrontWebACLCD0D135A
+            - Arn
     Metadata:
       aws:cdk:path: CdkStack/front-cloudfront/CloudFrontDistribution/Resource
       cfn_nag:
@@ -390,6 +394,103 @@ Resources:
       aws:cdk:path: CdkStack/Custom::S3AutoDeleteObjectsCustomResourceProvider/Handler
       aws:asset:path: asset.350185a1069fa20a23a583e20c77f6844218bd73097902362dc94f1a108f5d89
       aws:asset:property: Code
+  wafwebaclfrontcloudfrontwafwebaclfrontcloudfrontWebACLCD0D135A:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      DefaultAction:
+        Allow: {}
+      Scope: CLOUDFRONT
+      VisibilityConfig:
+        CloudWatchMetricsEnabled: true
+        MetricName: webACL
+        SampledRequestsEnabled: true
+      Rules:
+        - Name: AWS-AWSManagedRulesBotControlRuleSet
+          OverrideAction:
+            None: {}
+          Priority: 0
+          Statement:
+            ManagedRuleGroupStatement:
+              Name: AWSManagedRulesBotControlRuleSet
+              VendorName: AWS
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesBotControlRuleSet
+            SampledRequestsEnabled: true
+        - Name: AWS-AWSManagedRulesKnownBadInputsRuleSet
+          OverrideAction:
+            None: {}
+          Priority: 1
+          Statement:
+            ManagedRuleGroupStatement:
+              Name: AWSManagedRulesKnownBadInputsRuleSet
+              VendorName: AWS
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesKnownBadInputsRuleSet
+            SampledRequestsEnabled: true
+        - Name: AWS-AWSManagedRulesCommonRuleSet
+          OverrideAction:
+            None: {}
+          Priority: 2
+          Statement:
+            ManagedRuleGroupStatement:
+              Name: AWSManagedRulesCommonRuleSet
+              VendorName: AWS
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesCommonRuleSet
+            SampledRequestsEnabled: true
+        - Name: AWS-AWSManagedRulesAnonymousIpList
+          OverrideAction:
+            None: {}
+          Priority: 3
+          Statement:
+            ManagedRuleGroupStatement:
+              Name: AWSManagedRulesAnonymousIpList
+              VendorName: AWS
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesAnonymousIpList
+            SampledRequestsEnabled: true
+        - Name: AWS-AWSManagedRulesAmazonIpReputationList
+          OverrideAction:
+            None: {}
+          Priority: 4
+          Statement:
+            ManagedRuleGroupStatement:
+              Name: AWSManagedRulesAmazonIpReputationList
+              VendorName: AWS
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesAmazonIpReputationList
+            SampledRequestsEnabled: true
+        - Name: AWS-AWSManagedRulesAdminProtectionRuleSet
+          OverrideAction:
+            None: {}
+          Priority: 5
+          Statement:
+            ManagedRuleGroupStatement:
+              Name: AWSManagedRulesAdminProtectionRuleSet
+              VendorName: AWS
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesAdminProtectionRuleSet
+            SampledRequestsEnabled: true
+        - Name: AWS-AWSManagedRulesSQLiRuleSet
+          OverrideAction:
+            None: {}
+          Priority: 6
+          Statement:
+            ManagedRuleGroupStatement:
+              Name: AWSManagedRulesSQLiRuleSet
+              VendorName: AWS
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesSQLiRuleSet
+            SampledRequestsEnabled: true
+    Metadata:
+      aws:cdk:path: CdkStack/wafwebacl-front-cloudfront/wafwebacl-front-cloudfront-WebACL
   imagecloudfrontS3LoggingBucket1623DCE7:
     Type: AWS::S3::Bucket
     Properties:
@@ -734,12 +835,113 @@ Resources:
                   - ""
                   - - origin-access-identity/cloudfront/
                     - Ref: imagecloudfrontCloudFrontDistributionOrigin1S3OriginE41F8F24
+        WebACLId:
+          Fn::GetAtt:
+            - wafwebaclimagecloudfrontwafwebaclimagecloudfrontWebACLABA59095
+            - Arn
     Metadata:
       aws:cdk:path: CdkStack/image-cloudfront/CloudFrontDistribution/Resource
       cfn_nag:
         rules_to_suppress:
           - id: W70
             reason: Since the distribution uses the CloudFront domain name, CloudFront automatically sets the security policy to TLSv1 regardless of the value of MinimumProtocolVersion
+  wafwebaclimagecloudfrontwafwebaclimagecloudfrontWebACLABA59095:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      DefaultAction:
+        Allow: {}
+      Scope: CLOUDFRONT
+      VisibilityConfig:
+        CloudWatchMetricsEnabled: true
+        MetricName: webACL
+        SampledRequestsEnabled: true
+      Rules:
+        - Name: AWS-AWSManagedRulesBotControlRuleSet
+          OverrideAction:
+            None: {}
+          Priority: 0
+          Statement:
+            ManagedRuleGroupStatement:
+              Name: AWSManagedRulesBotControlRuleSet
+              VendorName: AWS
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesBotControlRuleSet
+            SampledRequestsEnabled: true
+        - Name: AWS-AWSManagedRulesKnownBadInputsRuleSet
+          OverrideAction:
+            None: {}
+          Priority: 1
+          Statement:
+            ManagedRuleGroupStatement:
+              Name: AWSManagedRulesKnownBadInputsRuleSet
+              VendorName: AWS
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesKnownBadInputsRuleSet
+            SampledRequestsEnabled: true
+        - Name: AWS-AWSManagedRulesCommonRuleSet
+          OverrideAction:
+            None: {}
+          Priority: 2
+          Statement:
+            ManagedRuleGroupStatement:
+              Name: AWSManagedRulesCommonRuleSet
+              VendorName: AWS
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesCommonRuleSet
+            SampledRequestsEnabled: true
+        - Name: AWS-AWSManagedRulesAnonymousIpList
+          OverrideAction:
+            None: {}
+          Priority: 3
+          Statement:
+            ManagedRuleGroupStatement:
+              Name: AWSManagedRulesAnonymousIpList
+              VendorName: AWS
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesAnonymousIpList
+            SampledRequestsEnabled: true
+        - Name: AWS-AWSManagedRulesAmazonIpReputationList
+          OverrideAction:
+            None: {}
+          Priority: 4
+          Statement:
+            ManagedRuleGroupStatement:
+              Name: AWSManagedRulesAmazonIpReputationList
+              VendorName: AWS
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesAmazonIpReputationList
+            SampledRequestsEnabled: true
+        - Name: AWS-AWSManagedRulesAdminProtectionRuleSet
+          OverrideAction:
+            None: {}
+          Priority: 5
+          Statement:
+            ManagedRuleGroupStatement:
+              Name: AWSManagedRulesAdminProtectionRuleSet
+              VendorName: AWS
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesAdminProtectionRuleSet
+            SampledRequestsEnabled: true
+        - Name: AWS-AWSManagedRulesSQLiRuleSet
+          OverrideAction:
+            None: {}
+          Priority: 6
+          Statement:
+            ManagedRuleGroupStatement:
+              Name: AWSManagedRulesSQLiRuleSet
+              VendorName: AWS
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesSQLiRuleSet
+            SampledRequestsEnabled: true
+    Metadata:
+      aws:cdk:path: CdkStack/wafwebacl-image-cloudfront/wafwebacl-image-cloudfront-WebACL
   LambdaDynamoDBinventorylambdacdkServiceRole9816146A:
     Type: AWS::IAM::Role
     Properties:
@@ -789,6 +991,15 @@ Resources:
                       - imagecloudfrontS3Bucket5F431E11
                       - Arn
                   - /*
+          - Action: cloudfront:CreateInvalidation
+            Effect: Allow
+            Resource:
+              Fn::Join:
+                - ""
+                - - "arn:aws:cloudfront::"
+                  - Ref: AWS::AccountId
+                  - :distribution/
+                  - Ref: imagecloudfrontCloudFrontDistribution55627731
           - Action:
               - xray:PutTelemetryRecords
               - xray:PutTraceSegments
@@ -836,6 +1047,8 @@ Resources:
         Variables:
           BUCKET_NAME:
             Ref: imagecloudfrontS3Bucket5F431E11
+          CLOUDFRONT_ID:
+            Ref: imagecloudfrontCloudFrontDistribution55627731
           TABLE_NAME:
             Ref: LambdaDynamoDBDynamoTable1F288269
       FunctionName: inventory-lambda-cdk
@@ -1292,10 +1505,206 @@ Resources:
             - Arn
     Metadata:
       aws:cdk:path: CdkStack/Cognito-Apigateway-Lambda/CognitoAuthorizer
+  wafwebaclapigatewaywafwebaclapigatewayWebACL103B44D7:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      DefaultAction:
+        Allow: {}
+      Scope: REGIONAL
+      VisibilityConfig:
+        CloudWatchMetricsEnabled: true
+        MetricName: webACL
+        SampledRequestsEnabled: true
+      Rules:
+        - Name: AWS-AWSManagedRulesBotControlRuleSet
+          OverrideAction:
+            None: {}
+          Priority: 0
+          Statement:
+            ManagedRuleGroupStatement:
+              Name: AWSManagedRulesBotControlRuleSet
+              VendorName: AWS
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesBotControlRuleSet
+            SampledRequestsEnabled: true
+        - Name: AWS-AWSManagedRulesKnownBadInputsRuleSet
+          OverrideAction:
+            None: {}
+          Priority: 1
+          Statement:
+            ManagedRuleGroupStatement:
+              Name: AWSManagedRulesKnownBadInputsRuleSet
+              VendorName: AWS
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesKnownBadInputsRuleSet
+            SampledRequestsEnabled: true
+        - Name: AWS-AWSManagedRulesCommonRuleSet
+          OverrideAction:
+            None: {}
+          Priority: 2
+          Statement:
+            ManagedRuleGroupStatement:
+              ExcludedRules:
+                - Name: SizeRestrictions_BODY
+              Name: AWSManagedRulesCommonRuleSet
+              VendorName: AWS
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesCommonRuleSet
+            SampledRequestsEnabled: true
+        - Name: AWS-AWSManagedRulesAnonymousIpList
+          OverrideAction:
+            None: {}
+          Priority: 3
+          Statement:
+            ManagedRuleGroupStatement:
+              Name: AWSManagedRulesAnonymousIpList
+              VendorName: AWS
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesAnonymousIpList
+            SampledRequestsEnabled: true
+        - Name: AWS-AWSManagedRulesAmazonIpReputationList
+          OverrideAction:
+            None: {}
+          Priority: 4
+          Statement:
+            ManagedRuleGroupStatement:
+              Name: AWSManagedRulesAmazonIpReputationList
+              VendorName: AWS
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesAmazonIpReputationList
+            SampledRequestsEnabled: true
+        - Name: AWS-AWSManagedRulesAdminProtectionRuleSet
+          OverrideAction:
+            None: {}
+          Priority: 5
+          Statement:
+            ManagedRuleGroupStatement:
+              Name: AWSManagedRulesAdminProtectionRuleSet
+              VendorName: AWS
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesAdminProtectionRuleSet
+            SampledRequestsEnabled: true
+        - Name: AWS-AWSManagedRulesSQLiRuleSet
+          OverrideAction:
+            None: {}
+          Priority: 6
+          Statement:
+            ManagedRuleGroupStatement:
+              Name: AWSManagedRulesSQLiRuleSet
+              VendorName: AWS
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: AWSManagedRulesSQLiRuleSet
+            SampledRequestsEnabled: true
+    Metadata:
+      aws:cdk:path: CdkStack/wafwebacl-apigateway/wafwebacl-apigateway-WebACL
+  wafwebaclapigatewayWebACLAssociation:
+    Type: AWS::WAFv2::WebACLAssociation
+    Properties:
+      ResourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":apigateway:"
+            - Ref: AWS::Region
+            - ::/restapis/
+            - Ref: CognitoApigatewayLambdaLambdaRestApi2B663102
+            - /stages/
+            - Ref: CognitoApigatewayLambdaLambdaRestApiDeploymentStageprod7F882E8D
+      WebACLArn:
+        Fn::GetAtt:
+          - wafwebaclapigatewaywafwebaclapigatewayWebACL103B44D7
+          - Arn
+    Metadata:
+      aws:cdk:path: CdkStack/wafwebacl-apigateway-WebACLAssociation
+  apigatewayURLF6F5EFF0:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Value:
+        Fn::Join:
+          - ""
+          - - https://
+            - Ref: CognitoApigatewayLambdaLambdaRestApi2B663102
+            - .execute-api.
+            - Ref: AWS::Region
+            - "."
+            - Ref: AWS::URLSuffix
+            - /
+            - Ref: CognitoApigatewayLambdaLambdaRestApiDeploymentStageprod7F882E8D
+            - /
+      Name: apigatewayURL
+    Metadata:
+      aws:cdk:path: CdkStack/apigatewayURL/Resource
+  imageCloudFrontURL25E14D3B:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Value:
+        Fn::GetAtt:
+          - imagecloudfrontCloudFrontDistribution55627731
+          - DomainName
+      Name: imageCloudFrontURL
+    Metadata:
+      aws:cdk:path: CdkStack/imageCloudFrontURL/Resource
+  frontBucket8DAA3C36:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Value:
+        Ref: frontcloudfrontS3BucketDF54753C
+      Name: frontBucket
+    Metadata:
+      aws:cdk:path: CdkStack/frontBucket/Resource
+  frontCloudfrontID4DD7923E:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Value:
+        Ref: frontcloudfrontCloudFrontDistribution0AB2AF01
+      Name: frontCloudfrontID
+    Metadata:
+      aws:cdk:path: CdkStack/frontCloudfrontID/Resource
+  lambdaFunction940E68AD:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Value:
+        Ref: LambdaDynamoDBinventorylambdacdk17374F7A
+      Name: lambdaFunction
+    Metadata:
+      aws:cdk:path: CdkStack/lambdaFunction/Resource
+  cognitoURL357A4C65:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Value:
+        Fn::Join:
+          - ""
+          - - https://
+            - Ref: CognitoApigatewayLambdaCognitoUserPoolinvntoryvk0188F594
+            - .auth.
+            - Ref: AWS::Region
+            - .amazoncognito.com/login?response_type=token&client_id=
+            - Ref: CognitoApigatewayLambdaCognitoUserPoolClient56594A7D
+            - "&redirect_uri=https://"
+            - Fn::GetAtt:
+                - frontcloudfrontCloudFrontDistribution0AB2AF01
+                - DomainName
+      Name: cognitoURL
+    Metadata:
+      aws:cdk:path: CdkStack/cognitoURL/Resource
   CDKMetadata:
     Type: AWS::CDK::Metadata
     Properties:
-      Analytics: v2:deflate64:H4sIAAAAAAAA/4VSy07cMBT9lu4dUxpB211nEoGQWhENw7ryOCa9jOMb+QFNo/x7b+yEzEit2Njnvl/nEx+uv/KPH8Sry2R9zDQc+PDghTwyUv0cXM6HbZBH5VnxZGaUvgo1yH5VJ3lkUmOonywaz4cSnLdwCB7QsHsLDZiNlMq5u1oZDz6GF1PAzRTwP4/TNCMD0fJhh1pNpvivrSxNaNEeasGHm2BkLE62U1wp24JzMV/dG9FiTYPvxSFljYCyYOP48B2bW4uhmwwLHpnooBFevYqePGK1nXJ+00Hsaoal6jT2LU0Sx1glWnETKyVA/hisVFvhFPuh/C+sJ+OMKou/+8VlTp/wo6PoSos405lAS8SQym4CZbHwR1k6DjYGPPLh0SlbIeoUOOMFlNgKMKemWbOIhYZ5pnPNOLIiOI/tP7s9N9FUL1AryzbOKT/tAUzDTgPvg+9CrFKgqSFdP78mun6b+OpQR0YQc+nxNkjvLiKR3xiYEX9Xeu3xIWd5/m58Ik/2xot03j2WUVFuWf75/R7SorOVJnNaXiTLHokgt8m0x1RiZAZrxZ/dxcvlF355RVWeHUBm6ZLQKr5L/1+PDucKtQMAAA==
+      Analytics: v2:deflate64:H4sIAAAAAAAA/4VTy27bMBD8lt4pponRtL3VlpGgQIoIiYMcC4qi1Y0lrsGHXZfQv3dFSpYMtMiFnH0Nd8nhDQ+3X/nHD+JoM1ntsgZKHp6dkDtGrp/BLnhYeblTjuVbPaC0FdiAPE3uZHdMNuirrUHteFiDdQZK7wA1ezRQg15Kqaz9XintwMXyvC+46wv+lzGn6dhRbA83PJD/VZXL/IGd0dJalCBSGoiWhydsVB+P+9Tx2Gsj2rISPNx5LWOPFJvjQpkWrI181UmLFiu6n40oE2sExIK15eEB63uDft8HRtwxsYdaOHUUJ8qIpz0p65Z7iF0NcK32DZ5aGjhOO1n0EnU8KQHKR2+kWgmr2A/lfmHVBwdUGPx9GlMG+oRfLFUXjYgzXRh01+jTsUtPLAb+KENviLUGhzy8WGUKxCYVDngEa2wF6Hlo8Ixm3sAw06WnY9a2vc4M6LoQRrTKKRMvfDS6juXeOmz/OdBliAY/QEUE9P7K9VdFtGxe+Ojd3sdGctQVJIEsbkn433rlW2yitugP0OKMl85exS9x1nJGP2ES6gafF2zx+d36QFo9qlLIJguzf/E6ejc4cc6lMksgfdwn7/lZsikzGxScp8g8fYNJbzTo4t1GE0121ngq3eA6OtarjmmsFH+zV4frL/z6ExG+WYDMkHigVfwp7X8Bz95VFE8EAAA=
     Metadata:
       aws:cdk:path: CdkStack/CDKMetadata/Default
     Condition: CDKMetadataAvailable

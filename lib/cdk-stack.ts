@@ -1,4 +1,4 @@
-import { RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
+import { RemovalPolicy, Stack, StackProps, Aws } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { CloudFrontToS3 } from '@aws-solutions-constructs/aws-cloudfront-s3' 
 import { LambdaToDynamoDB } from '@aws-solutions-constructs/aws-lambda-dynamodb'
@@ -8,6 +8,10 @@ import { Effect, PolicyStatement } from 'aws-cdk-lib/aws-iam';
 import { BlockPublicAccess } from 'aws-cdk-lib/aws-s3';
 import { CognitoToApiGatewayToLambda } from '@aws-solutions-constructs/aws-cognito-apigateway-lambda';
 import { AccountRecovery } from 'aws-cdk-lib/aws-cognito';
+import * as ssm from 'aws-cdk-lib/aws-ssm';
+import { WafwebaclToCloudFront } from "@aws-solutions-constructs/aws-wafwebacl-cloudfront"
+import { WafwebaclToApiGateway } from "@aws-solutions-constructs/aws-wafwebacl-apigateway";
+import { wafWebACLApigatewayProps } from './waf-apigateway'
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 
 export class CdkStack extends Stack {
@@ -32,6 +36,10 @@ export class CdkStack extends Stack {
       }
     })
 
+    const wafFrontCloudFront = new WafwebaclToCloudFront(this, 'wafwebacl-front-cloudfront', {
+      existingCloudFrontWebDistribution: frontCloudfront.cloudFrontWebDistribution
+    });
+
     const imageCloudfront = new CloudFrontToS3(this, 'image-cloudfront', {
       insertHttpSecurityHeaders: false,
       bucketProps: {
@@ -49,6 +57,10 @@ export class CdkStack extends Stack {
         autoDeleteObjects: true,
       }
     })
+    
+    const wafImageCloudFront = new WafwebaclToCloudFront(this, 'wafwebacl-image-cloudfront', {
+      existingCloudFrontWebDistribution: imageCloudfront.cloudFrontWebDistribution
+    });
 
     const lambdaDynamoDB = new LambdaToDynamoDB(this, 'Lambda-DynamoDB', {
       dynamoTableProps: {
@@ -61,8 +73,12 @@ export class CdkStack extends Stack {
         runtime: Runtime.PYTHON_3_9,
         code: Code.fromInline('def handler(): print("Hello World")'),
         handler: 'lambda_function.handler',
-        environment: {['BUCKET_NAME']: `${imageCloudfront.s3Bucket?.bucketName}`},
-        initialPolicy: [new PolicyStatement({
+        environment: {
+          ['BUCKET_NAME']: `${imageCloudfront.s3Bucket?.bucketName}`,
+          ['CLOUDFRONT_ID']: imageCloudfront.cloudFrontWebDistribution.distributionId
+        },
+        initialPolicy: [
+          new PolicyStatement({
           effect: Effect.ALLOW,
           actions: [
             "s3:PutObject",
@@ -70,10 +86,15 @@ export class CdkStack extends Stack {
             "s3:DeleteObject"
           ],
           resources: [`${imageCloudfront.s3Bucket?.bucketArn}/*`]
-        })]
+          }),
+          new PolicyStatement({
+            effect: Effect.ALLOW,
+            actions: ["cloudfront:CreateInvalidation"],
+            resources: [`arn:aws:cloudfront::${Aws.ACCOUNT_ID}:distribution/${imageCloudfront.cloudFrontWebDistribution.distributionId}`]
+            })
+        ]
       },
       tableEnvironmentVariableName: 'TABLE_NAME',
-
     })
 
     const cognitoApigatewayLambda = new CognitoToApiGatewayToLambda(this, 'Cognito-Apigateway-Lambda', {
@@ -105,17 +126,35 @@ export class CdkStack extends Stack {
       },
       existingLambdaObj: lambdaDynamoDB.lambdaFunction
     })
-    cognitoApigatewayLambda.userPool.addDomain('invntoryvk',{
+    const cognitoDomain=cognitoApigatewayLambda.userPool.addDomain('invntoryvk',{
       cognitoDomain: {
         domainPrefix: 'inventoryvk'
       }
     })
 
-    // The code that defines your stack goes here
+    const wafApiGateway = new WafwebaclToApiGateway(this, 'wafwebacl-apigateway', {
+      existingApiGatewayInterface: cognitoApigatewayLambda.apiGateway,
+      webaclProps: wafWebACLApigatewayProps
+    })
+    
+    interface OutputsResources {
+        [key: string]:string
+    }
+    const outputsResources: OutputsResources ={
+      region: Aws.REGION,
+      apigatewayURL: cognitoApigatewayLambda.apiGateway.url,
+      imageCloudFrontURL: imageCloudfront.cloudFrontWebDistribution.domainName,
+      frontBucket: `${frontCloudfront.s3Bucket?.bucketName}`,
+      frontCloudfrontID: frontCloudfront.cloudFrontWebDistribution.distributionId,
+      lambdaFunction: lambdaDynamoDB.lambdaFunction.functionName,
+      cognitoURL: `https://${cognitoDomain.domainName}.auth.${Aws.REGION}.amazoncognito.com/login?response_type=token&client_id=${cognitoApigatewayLambda.userPoolClient.userPoolClientId}&redirect_uri=https://${frontCloudfront.cloudFrontWebDistribution.domainName}`
+    }
 
-    // example resource
-    // const queue = new sqs.Queue(this, 'CdkQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
-  }
+    Object.keys(outputsResources).forEach((output) => {
+      new ssm.StringParameter(this, output, {
+        parameterName: output,
+        stringValue: outputsResources[output]
+      })
+    })
+  } 
 }
