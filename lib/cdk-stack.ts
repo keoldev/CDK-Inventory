@@ -141,9 +141,8 @@ export class CdkStack extends Stack {
         [key: string]:string
     }
     const outputsResources: OutputsResources ={
-      region: Aws.REGION,
       apigatewayURL: cognitoApigatewayLambda.apiGateway.url,
-      imageCloudFrontURL: imageCloudfront.cloudFrontWebDistribution.domainName,
+      imageCloudFrontURL: `https://${imageCloudfront.cloudFrontWebDistribution.domainName}/`,
       frontBucket: `${frontCloudfront.s3Bucket?.bucketName}`,
       frontCloudfrontID: frontCloudfront.cloudFrontWebDistribution.distributionId,
       lambdaFunction: lambdaDynamoDB.lambdaFunction.functionName,
